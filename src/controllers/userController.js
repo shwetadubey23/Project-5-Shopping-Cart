@@ -23,6 +23,12 @@ const userLogin = async function (req, res) {
             exp: Math.floor(Date.now() / 1000) + 10 * 60 * 60
         }, 'project-5-group-57')
 
+        //  let exp = "6h"
+        // let token = jwt.sign({ userId: userData._id }, "Book management secret key", { expiresIn: exp })
+
+        // res.setHeader("x-api-key", token);
+        // let dataT = { token, userId: userData._id, iat: moment(), exp: exp }
+        // return res.status(201).send({ status: true, msg: "login successfull", data: dataT })
         res.status(201).send({ status: true, message: 'token created successfully', data: token })
 
 
@@ -32,4 +38,7 @@ const userLogin = async function (req, res) {
 }
 
 
-module.exports = { userLogin }
+
+
+
+module.exports.userLogin =  userLogin 
