@@ -1,12 +1,12 @@
 const express = require('express')
 const router = express.Router()
-const {userLogin} = require('../controllers/userController')
+const userController = require('../controllers/userController')
 
 
 
 
-router.post('/login', userLogin)
-
+router.post('/login', userController.userLogin)
+router.get('/user/:userId/profile',userController.getUserById)
 
 
 

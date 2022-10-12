@@ -1,5 +1,6 @@
 const jwt= require('jsonwebtoken')
 const userModel= require('../models/userModel')
+const ObjectId = require('mongoose').Types.ObjectId
 const { isValid, checkObject, regexName, regexPhone, regexEmail, regexPassword, regexPincode} = require('../validators/validator')
 
 
@@ -85,19 +86,12 @@ const userLogin = async function (req, res) {
         if (!user) {
             return res.status(400).send({ status: false, message: 'email or password incorrect' })
         }
-        let token = jwt.sign({
-            userId: user._id,
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + 10 * 60 * 60
-        }, 'project-5-group-57')
 
-        //  let exp = "6h"
-        // let token = jwt.sign({ userId: userData._id }, "Book management secret key", { expiresIn: exp })
+        let exp = "6h"
+        let token = jwt.sign({ userId: userData._id }, "project-5-group-57", { expiresIn: exp })
 
-        // res.setHeader("x-api-key", token);
-        // let dataT = { token, userId: userData._id, iat: moment(), exp: exp }
-        // return res.status(201).send({ status: true, msg: "login successfull", data: dataT })
-        res.status(201).send({ status: true, message: 'token created successfully', data: token })
+         res.setHeader("x-api-key", token);
+        res.status(201).send({ status: true, message: ' login successfully', data: token })
 
 
     } catch (err) {
@@ -106,4 +100,19 @@ const userLogin = async function (req, res) {
 }
 
 
-module.exports = { userLogin }
+const getUserById = async function(req, res){
+    try{
+    let userId = req.params.userId
+    if (!ObjectId.isValid(userId)) return res.status(400).send({ status: false, msg: "Please give a Valid userId " })
+    let userProfile = await userModel.findById({ _id: userId })
+    if(!userProfile )
+    return res.status(404).send({ status: false, msg: "userProfile not found" })
+
+   return res.status(200).send({ status: true, data: userProfile })
+
+  }catch(error){
+    return res.status(500).send({status: false, error: error.message})
+  }
+}
+
+module.exports = { userLogin, getUserById }
