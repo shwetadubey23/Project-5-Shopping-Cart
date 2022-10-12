@@ -1,7 +1,10 @@
 const jwt= require('jsonwebtoken')
 const userModel= require('../models/userModel')
 const ObjectId = require('mongoose').Types.ObjectId
+const { uploadFile } = require("../utils/aws")
+const bcrypt = require("bcrypt");
 const { isValid, checkObject, regexName, regexPhone, regexEmail, regexPassword, regexPincode} = require('../validators/validator')
+
 
 
 
@@ -112,13 +115,18 @@ const createUser = async function (req, res) {
         if (!(files && files.length)){
             return res.status(400).send({ status: false, message: "Please Provide The Profile Image" });
         }
+
         const uploadedProfileImage = await uploadFile(files[0])
+        
         const newpass = await bcrypt.hash(password, 10)
+        
         data.profileImage = uploadedProfileImage
+        
         data.password = newpass
+        
                
         let userData = await userModel.create(data)
-        return res.status(201).send({ status: true, msg: "User register successfully", data: userData })
+        return res.status(201).send({ status: true, msg: "User created successfully", data: userData })
     }
     catch (err) {
         return res.status(500).send({ status: false, error: err.message })
@@ -140,10 +148,13 @@ const userLogin = async function (req, res) {
         if (!user) {
             return res.status(400).send({ status: false, message: 'email or password incorrect' })
         }
+
         let exp = "6h"
         let token = jwt.sign({ userId: userData._id }, "project-5-group-57", { expiresIn: exp })
+
          res.setHeader("x-api-key", token);
         res.status(201).send({ status: true, message: ' login successfully', data: token })
+
 
     } catch (err) {
         return res.status(500).send({ status: false, Error: err.message })
