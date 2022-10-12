@@ -1,0 +1,56 @@
+const jwt = require('jsonwebtoken')
+const mongoose = require('mongoose')
+const userModel = require('../models/userModel')
+
+
+const authentication = async function (req, res, next) {
+    try {
+        let token = req.headers["authorization"]
+
+        if (!token) {
+            return res.status(401).send({ status: false, message: 'please provide token' })
+        }
+
+        let bearerToken = token.split(' ')
+        let Bearer = bearerToken[1]
+        
+        jwt.verify(Bearer, 'project-5-group-57', function (err, decodedToken) {
+            if (err) {
+                return res.status(401).send({ status: false, message: 'please provide valid token' })
+            }
+            req.Token = decodedToken.userId
+            next()
+        })
+
+    } catch (err) {
+        return res.status(500).send({ status: false, Error: err.message })
+    }
+}
+
+
+const authorisation = async function (req, res, next) {
+    try {
+        let userId = req.params.userId
+
+        if (!mongoose.isValidObjectId(userId)) {
+            return res.status(400).send({ status: false, message: 'user id is not valid' })
+        }
+        let user = await userModel.findById({_id:userId })
+        if (!user) {
+            return res.status(404).send({ status: false, message: 'user id does not exist' })
+        }
+        if (user._id!=req.Token) {
+            return res.status(403).send({ status: false, message: 'not authorised' })
+        }
+        next()
+
+    } catch (err) {
+        return res.status(500).send({ status: false, Error: err.message })
+    }
+}
+
+
+module.exports = { authentication, authorisation }
+
+
+
