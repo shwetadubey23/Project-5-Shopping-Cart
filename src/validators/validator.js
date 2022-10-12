@@ -1,10 +1,15 @@
 const mongoose = require('mongoose')
 
-const isValid = function(value){
-    if(!value || typeof value === "undefined" || value === null || typeof value != 'string') return false
-    if(typeof value === "string" && value.trim().length === 0 ) return false
-    return true
-}
+// const isValid = function(value){
+//     if(!value || typeof value === "undefined" || value === null || typeof value != 'string') return false
+//     if(typeof value === "string" && value.trim().length === 0 ) return false
+//     return true
+// }
+const isValid = function (value) {
+    if (!value ||typeof value !== "string")   return false
+    if (typeof value === 'string' && value.trim().length === 0) return false        
+    return true;
+};
 
 const isValidObjectId = (ObjectId) => {
     return mongoose.Types.ObjectId.isValid(ObjectId)
