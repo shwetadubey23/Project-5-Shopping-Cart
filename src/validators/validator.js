@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 
 
 const isValid = function (value) {
-    if (!value ||typeof value !== "string")   return false
-    if (typeof value === 'string' && value.trim().length === 0) return false        
+    if (!value || typeof value !== "string") return false
+    if (typeof value === 'string' && value.trim().length === 0) return false
     return true;
 };
 
@@ -11,26 +11,26 @@ const isValidObjectId = (ObjectId) => {
     return mongoose.Types.ObjectId.isValid(ObjectId)
 }
 
-function onlyNumbers(val){
-    if(val < 1 || val > 5){
+function onlyNumbers(val) {
+    if (val < 1 || val > 5) {
         return false
     }
     val = val.toString().split("")
 
-    for(let ele of val){
-        if(ele == "."){
-            return false 
+    for (let ele of val) {
+        if (ele == ".") {
+            return false
         }
     }
     return true
 }
 
-function checkObject(value){
-    if (typeof value == "undefined" || typeof value == null || typeof value!= 'object') {
+function checkObject(value) {
+    if (typeof value == "undefined" || typeof value == null || typeof value != 'object') {
         return false
-     }else{
+    } else {
         return true
-     }
+    }
 }
 
 // Regex
@@ -47,4 +47,4 @@ const regexPincode = /^(\d{4}|\d{6})$/
 
 
 
-module.exports = {isValid, isValidObjectId, onlyNumbers, checkObject, regexName, regexEmail, regexPassword, regexPhone, regexPincode}
+module.exports = { isValid, isValidObjectId, onlyNumbers, checkObject, regexName, regexEmail, regexPassword, regexPhone, regexPincode }
