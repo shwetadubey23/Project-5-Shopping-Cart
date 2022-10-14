@@ -1,4 +1,4 @@
-const aws = require('aws-sdk')   
+const aws = require('aws-sdk')
 
 //amazon simple storage service
 
@@ -39,9 +39,9 @@ let uploadFile= async ( file) =>{
      // else return "there is an error"
  
     })
- }
-
- 
+}
 
 
-module.exports =  {uploadFile}
+
+
+module.exports = { uploadFile }

@@ -1,16 +1,12 @@
 const jwt = require('jsonwebtoken')
-
 const userModel = require('../models/userModel')
-const { uploadFile } = require("../awsConfigure/aws")
+const ObjectId = require('mongoose').Types.ObjectId
+const {uploadFile} = require('../awsConfigure/aws')
 const bcrypt = require("bcrypt");
-const { isValid, checkObject, regexName, regexPhone, regexEmail, regexPassword, regexPincode, isValidObjectId } = require('../validators/validator')
+const { isValid, checkObject, regexName, regexPhone, regexEmail, regexPassword, regexPincode } = require('../validators/validator')
 
 
-
-
-
-
-
+//_________________________ Post API createUser ___________________________________________
 
 const createUser = async function (req, res) {
     try {
@@ -27,7 +23,7 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, msg: "please provide valid name " })
         }
         // *****************************************************************************************************
-        if (!lname) {
+        if (!isValid(lname)) {
             return res.status(400).send({ status: false, msg: "please provide lname in proper format" })
         }
         if (!regexName.test(lname)) {
@@ -35,7 +31,7 @@ const createUser = async function (req, res) {
         }
         // ******************************************************************************************************
 
-        if (!email) {
+        if (!isValid(email)) {
             return res.status(400).send({ status: false, msg: "please provide email in proper format" })
         }
         if (!regexEmail.test(email)) {
@@ -46,14 +42,14 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, msg: "email is already registered" })
         }
         // *********************************************************************************************************
-        if (!password) {
+        if (!isValid(password)) {
             return res.status(400).send({ status: false, msg: "please provide password in proper format" })
         }
         if (!regexPassword.test(password)) {
             return res.status(400).send({ status: false, msg: "please provide valid password" })
         }
         // ********************************************************************************************
-        if (!phone) {
+        if (!isValid(phone)) {
             return res.status(400).send({ status: false, msg: "please provide phone in proper format" })
         }
         if (!regexPhone.test(phone)) {
@@ -67,8 +63,8 @@ const createUser = async function (req, res) {
 
         if (address) {
 
-            if (typeof address != "object")
-                return res.status(400).send({ status: false, message: "address is in incorrect format" })
+            //if (typeof address != "object")
+              //  return res.status(400).send({ status: false, message: "address is in incorrect format" })
 
             if (address.shipping) {
                 if (!address.shipping.street) {
@@ -77,10 +73,12 @@ const createUser = async function (req, res) {
                 if (!address.shipping.city) {
                     return res.status(400).send({ status: false, message: "shipping city is mandatory" })
                 }
-                if (!regexName.test(address.shipping.city)) {
+                if (!isValid(address.shipping.city)) {
                     return res.status(400).send({ status: false, message: "shipping city is in incorrect format" })
                 }
-
+                if (!regexName.test(address.shipping.city)) {
+                    return res.status(400).send({ status: false, msg: "please provide valid  shipping city " })
+                }
                 if (!address.shipping.pincode) {
                     return res.status(400).send({ status: false, msg: " shipping pincode is required" })
                 }
@@ -98,10 +96,12 @@ const createUser = async function (req, res) {
                 if (!address.shipping.city) {
                     return res.status(400).send({ status: false, message: "shipping city is mandatory" })
                 }
-                if (!regexName.test(address.billing.city)) {
+                if (!isValid(address.billing.city)) {
                     return res.status(400).send({ status: false, message: "billing city is in incorrect format" })
                 }
-
+                if (!regexName.test(address.billing.city)) {
+                    return res.status(400).send({ status: false, msg: "please provide valid  billing city " })
+                }
                 if (!address.billing.pincode) {
                     return res.status(400).send({ status: false, msg: " billing pincode is required" })
                 }
@@ -113,7 +113,7 @@ const createUser = async function (req, res) {
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
         let files = req.files
 
-        if (files.length == 0) {
+        if (!(files && files.length)) {
             return res.status(400).send({ status: false, message: "Please Provide The Profile Image" });
         }
 
@@ -121,19 +121,22 @@ const createUser = async function (req, res) {
 
         const newpass = await bcrypt.hash(password, 10)
 
-        data["profileImage"] = uploadedProfileImage
+        data.profileImage = uploadedProfileImage
 
-        data["password"] = newpass
+        data.password = newpass
 
 
         let userData = await userModel.create(data)
-        return res.status(201).send({ status: true, message: "User created successfully", data: userData })
+        return res.status(201).send({ status: true, msg: "User created successfully", data: userData })
     }
-    catch (error) {
-        return res.status(500).send({ status: false, error: error.message })
+    catch (err) {
+        return res.status(500).send({ status: false, error: err.message })
     }
 }
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 const userLogin = async function (req, res) {
     try {
         const data = req.body
@@ -142,29 +145,29 @@ const userLogin = async function (req, res) {
         if (!email) {
             return res.status(400).send({ status: false, message: 'please provide email' })
         }
-
-        let user = await userModel.findOne({ email })
+        if (!password) {
+            return res.status(400).send({ status: false, message: 'please provide password' })
+        }
+        let user = await userModel.findOne({ email, password })
         if (!user) {
             return res.status(400).send({ status: false, message: 'email or password incorrect' })
         }
-        let hashedPassword = await bcrypt.compare(password, user.password)
-        if (!hashedPassword) return res.status(400).send({ status: false, message: "password doesn't match" })
 
-        let token = jwt.sign({
-            userId: user._id,
-            exp: Math.floor(Date.now() / 1000) + 10 * 60 * 60
-        }, 'project-5-group-57')
+        let exp = "6h"
+        let token = jwt.sign({ userId: userData._id }, "project-5-group-57", { expiresIn: exp })
 
-
-        let Object = { userId: user._id, token: token }
-
-        res.status(201).send({ status: true, message: 'token created successfully', data: Object })
+        res.setHeader("x-api-key", token);
+        res.status(201).send({ status: true, message: ' login successfully', data: token })
 
 
-    } catch (error) {
-        return res.status(500).send({ status: false, error: error.message })
+    } catch (err) {
+        return res.status(500).send({ status: false, Error: err.message })
     }
 }
+
+//___________________________Get API getUserProfile___________________________________________
+
+
 
 const getUserById = async function (req, res) {
     try {
@@ -182,6 +185,7 @@ const getUserById = async function (req, res) {
     }
 }
 
+//________________________update API ___________________________________________
 
 const updateuser = async function (req, res) {
     let data = req.body
@@ -199,13 +203,13 @@ const updateuser = async function (req, res) {
             return res.status(400).send({ status: false, msg: "please provide valid name " })
         }
     }
-    // *****************************************************************************************************
+    // ***********************************
     if (lname) {
         if (!regexName.test(lname)) {
             return res.status(400).send({ status: false, msg: "please provide valid lname " })
         }
     }
-    // ******************************************************************************************************
+    // **********************************
 
     if (email) {
         if (!regexEmail.test(email)) {
@@ -216,7 +220,7 @@ const updateuser = async function (req, res) {
             return res.status(400).send({ status: false, msg: "email is already registered" })
         }
     }
-    // *********************************************************************************************************
+    // ***********************************
     if (password) {
         if (!regexPassword.test(password)) {
             return res.status(400).send({ status: false, msg: "please provide valid password" })
@@ -225,7 +229,7 @@ const updateuser = async function (req, res) {
 
         data["password"] = newpass
     }
-    // ********************************************************************************************
+    // ********************************
     if (phone) {
         if (!regexPhone.test(phone)) {
             return res.status(400).send({ status: false, msg: "please provide valid phone number" })
@@ -235,7 +239,7 @@ const updateuser = async function (req, res) {
             return res.status(400).send({ status: false, msg: "phone number is already registered" })
         }
     }
-    // ******************************************************************************************************************
+    // **************************************
 
     if (address) {
 
@@ -262,7 +266,6 @@ const updateuser = async function (req, res) {
         // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         if (address.billing) {
 
-
             if (address.shipping.city) {
                 if (!regexName.test(address.billing.city)) {
                     return res.status(400).send({ status: false, message: "billing city is in incorrect format" })
@@ -278,7 +281,6 @@ const updateuser = async function (req, res) {
     }
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
 
-
     if (file) {
         let file = req.files
 
@@ -287,16 +289,10 @@ const updateuser = async function (req, res) {
             data["profileImage"] = image
         }
     }
-
-    // const newpass = await bcrypt.hash(password, 10)
-
-    // data["password"] = newpass
-
-
     let updateuser = await userModel.findOneAndUpdate({ _id: id }, { $set: data }, { new: true })
 
     return res.send({ status: true, message: "user updated successfully", data: updateuser })
 
 }
 
-module.exports = { createUser, userLogin, updateuser, getUserById }
+module.exports = { createUser, userLogin, getUserById, updateuser }
