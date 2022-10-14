@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 const userModel = require('../models/userModel')
 const ObjectId = require('mongoose').Types.ObjectId
-const {uploadFile} = require('../awsConfigure/aws')
+const { uploadFile } = require('../awsConfigure/aws')
 const bcrypt = require("bcrypt");
 const { isValid, checkObject, regexName, regexPhone, regexEmail, regexPassword, regexPincode } = require('../validators/validator')
 
@@ -64,7 +64,7 @@ const createUser = async function (req, res) {
         if (address) {
 
             //if (typeof address != "object")
-              //  return res.status(400).send({ status: false, message: "address is in incorrect format" })
+            //  return res.status(400).send({ status: false, message: "address is in incorrect format" })
 
             if (address.shipping) {
                 if (!address.shipping.street) {
@@ -113,7 +113,7 @@ const createUser = async function (req, res) {
         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
         let files = req.files
 
-        if (!(files && files.length)) {
+        if (!files.length === 0) {
             return res.status(400).send({ status: false, message: "Please Provide The Profile Image" });
         }
 
@@ -153,7 +153,7 @@ const userLogin = async function (req, res) {
             return res.status(400).send({ status: false, message: 'email or password incorrect' })
         }
 
-        let exp = "6h"
+        let exp = "1h"
         let token = jwt.sign({ userId: userData._id }, "project-5-group-57", { expiresIn: exp })
 
         res.setHeader("x-api-key", token);
