@@ -45,6 +45,9 @@ const regexPhone = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/
 
 const regexPincode = /^(\d{4}|\d{6})$/
 
+const regexPrice   = /^[1-9][0-9.]+$/
+
+const regexNumber = /^\d+$/
 
 
-module.exports = {isValid, isValidObjectId, onlyNumbers, checkObject, regexName, regexEmail, regexPassword, regexPhone, regexPincode}
+module.exports = {isValid, isValidObjectId, onlyNumbers, checkObject, regexName, regexEmail, regexPassword, regexPhone, regexPincode, regexPrice, regexNumber}

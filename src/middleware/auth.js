@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const userModel = require('../models/userModel')
 
 
+
 const authentication = async function (req, res, next) {
     try {
         let token = req.headers["authorization"]
@@ -10,15 +11,17 @@ const authentication = async function (req, res, next) {
         if (!token) {
             return res.status(401).send({ status: false, message: 'please provide token' })
         }
-
-        let bearerToken = token.split(' ')
-        let Bearer = bearerToken[1]
         
-        jwt.verify(Bearer, 'project-5-group-57', function (err, decodedToken) {
+        let bearerToken = token.split(' ')[1]
+       
+        
+        jwt.verify(bearerToken, 'project-5-group-57', function (err, decodedToken) {
             if (err) {
                 return res.status(401).send({ status: false, message: 'please provide valid token' })
             }
-            req.Token = decodedToken.userId
+           
+            req.loggedInUser = decodedToken.userId
+           
             next()
         })
 
@@ -39,7 +42,7 @@ const authorisation = async function (req, res, next) {
         if (!user) {
             return res.status(404).send({ status: false, message: 'user id does not exist' })
         }
-        if (user._id!=req.Token) {
+        if (userId != req.loggedInUser) {
             return res.status(403).send({ status: false, message: 'not authorised' })
         }
         next()
