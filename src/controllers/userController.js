@@ -156,7 +156,7 @@ const userLogin = async function (req, res) {
         let exp = "1h"
         let token = jwt.sign({ userId: userData._id }, "project-5-group-57", { expiresIn: exp })
 
-        res.setHeader("x-api-key", token);
+        //res.setHeader("x-api-key", token);
         res.status(201).send({ status: true, message: ' login successfully', data: token })
 
 
