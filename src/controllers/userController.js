@@ -93,7 +93,7 @@ const createUser = async function (req, res) {
                 if (!address.billing.street) {
                     return res.status(400).send({ status: false, message: "billing street is mandatory" })
                 }
-                if (!address.shipping.city) {
+                if (!address.billing.city) {
                     return res.status(400).send({ status: false, message: "shipping city is mandatory" })
                 }
                 if (!isValid(address.billing.city)) {

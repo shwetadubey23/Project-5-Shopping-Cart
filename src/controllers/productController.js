@@ -3,12 +3,6 @@ const { uploadFile } = require("../awsConfigure/aws")
 const { isValid, checkObject, regexName, regexPrice, regexNumber, isValidObjectId } = require('../validators/validator')
 
 
-
-
-
-
-
-
 const createProduct = async function (req, res) {
     try {
         let data = req.body
