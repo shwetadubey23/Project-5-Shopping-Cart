@@ -71,8 +71,9 @@ const createUser = async function (req, res) {
                 return res.status(400).send({ status: false, message: "address is in incorrect format" })
 
             if (address.shipping) {
-                if (!regexName.test(address.shipping.street)) {
-                    return res.status(400).send({ status: false, message: "shipping street is in incorrect format" })
+
+                if (!address.shipping.street) {
+                    return res.status(400).send({ status: false, message: "shipping street is required" })
                 }
                 if (!regexName.test(address.shipping.city)) {
                     return res.status(400).send({ status: false, message: "shipping city is in incorrect format" })
@@ -89,8 +90,8 @@ const createUser = async function (req, res) {
 
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             if (address.billing) {
-                if (!regexName.test(address.billing.street)) {
-                    return res.status(400).send({ status: false, message: "billing street is in incorrect format" })
+                if (!address.billing.street) {
+                    return res.status(400).send({ status: false, message: "billing street is required" })
                 }
                 if (!regexName.test(address.billing.city)) {
                     return res.status(400).send({ status: false, message: "billing city is in incorrect format" })
@@ -146,10 +147,11 @@ const userLogin = async function (req, res) {
 
         let token = jwt.sign({
             userId: user._id,
-            exp: Math.floor(Date.now() / 1000) + 10 * 60 * 60
-        }, 'project-5-group-57')
+           
+        }, 'project-5-group-57',
+          { expiresIn: "1hr" }) 
 
-
+         
         let Object = { userId: user._id, token: token }
 
         res.status(201).send({ status: true, message: 'token created successfully', data: Object })
@@ -160,20 +162,20 @@ const userLogin = async function (req, res) {
     }
 }
 
-const getUserById = async function(req, res){
-    try{
-    let userId = req.params.userId
-    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "Please give a Valid userId " })
-    let userProfile = await userModel.findById({_id:userId})
-    if(!userProfile ){
-    return res.status(404).send({ status: false, msg: "userProfile not found" })
+const getUserById = async function (req, res) {
+    try {
+        let userId = req.params.userId
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "Please give a Valid userId " })
+        let userProfile = await userModel.findById({ _id: userId })
+        if (!userProfile) {
+            return res.status(404).send({ status: false, msg: "userProfile not found" })
+        }
+
+        return res.status(200).send({ status: true, message: "data fetched successfully", data: userProfile })
+
+    } catch (error) {
+        return res.status(500).send({ status: false, error: error.message })
     }
-
-    return res.status(200).send({ status: true,message:"data fetched successfully", data: userProfile })
-
-  }catch(error){
-    return res.status(500).send({status: false, error: error.message})
-  }
 }
 
 
@@ -234,38 +236,44 @@ const updateuser = async function (req, res) {
     if (address) {
 
         if (address.shipping) {
-            if(address.shipping.street){
-            if (!regexName.test(address.shipping.street)) {
-                return res.status(400).send({ status: false, message: "shipping street is in incorrect format" })
-            }}
-            if(address.shipping.city){
-            if (!regexName.test(address.shipping.city)) {
-                return res.status(400).send({ status: false, message: "shipping city is in incorrect format" })
-            }}
+            if (address.shipping.street) {
+                if (!regexName.test(address.shipping.street)) {
+                    return res.status(400).send({ status: false, message: "shipping street is in incorrect format" })
+                }
+            }
+            if (address.shipping.city) {
+                if (!regexName.test(address.shipping.city)) {
+                    return res.status(400).send({ status: false, message: "shipping city is in incorrect format" })
+                }
+            }
 
 
-            if(address.shipping.pincode){
-            if (!regexPincode.test(address.shipping.pincode)) {
-                return res.status(400).send({ status: false, message: " shipping Pincode should be 6 characters long" })
-            }}
+            if (address.shipping.pincode) {
+                if (!regexPincode.test(address.shipping.pincode)) {
+                    return res.status(400).send({ status: false, message: " shipping Pincode should be 6 characters long" })
+                }
+            }
         }
 
         // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         if (address.billing) {
-            if(address.shipping.street){
-            if (!regexName.test(address.billing.street)) {
-                return res.status(400).send({ status: false, message: "billing street is in incorrect format" })
-            }}
-            
-            if(address.shipping.city){
-            if (!regexName.test(address.billing.city)) {
-                return res.status(400).send({ status: false, message: "billing city is in incorrect format" })
-            }}
-             
-            if(address.shipping.pincode){
-            if (!regexPincode.test(address.billing.pincode)) {
-                return res.status(400).send({ status: false, message: " billing Pincode should be 6 characters long" })
-            }}
+            if (address.shipping.street) {
+                if (!regexName.test(address.billing.street)) {
+                    return res.status(400).send({ status: false, message: "billing street is in incorrect format" })
+                }
+            }
+
+            if (address.shipping.city) {
+                if (!regexName.test(address.billing.city)) {
+                    return res.status(400).send({ status: false, message: "billing city is in incorrect format" })
+                }
+            }
+
+            if (address.shipping.pincode) {
+                if (!regexPincode.test(address.billing.pincode)) {
+                    return res.status(400).send({ status: false, message: " billing Pincode should be 6 characters long" })
+                }
+            }
         }
     }
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=

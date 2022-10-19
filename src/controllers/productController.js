@@ -3,108 +3,71 @@ const { uploadFile } = require("../awsConfigure/aws")
 const { isValid, checkObject, regexName, regexPrice, regexNumber, isValidObjectId } = require('../validators/validator')
 
 
+
 const createProduct = async function (req, res) {
     try {
         let data = req.body
-        let { isDeleted, installments, availableSizes, style, isFreeShipping, currencyFormat, currencyId, price, description, title } = data
-
+        const { title, description, price, currencyId, currencyFormat, installments, availableSizes } = data
+        
         if (Object.keys(data).length === 0) {
-            return res.status(400).send({ status: false, msg: "please provide something to create Product document" })
+            return res.status(400).send({ status: false, msg: "please provide detail for the Product creation " })
         }
-
 
         if (!title) {
-            return res.status(400).send({ status: false, msg: "title is mandatory" })
+            return res.status(400).send({ status: false, msg: "please provide proper title" })
         }
-        let uniqueTitle = await productModel.findOne({ title: title })
-        if (uniqueTitle) {
-            return res.status(400).send({ status: false, message: "title already exist" })
+        const duplicateTitle = await productModel.findOne({ title: title })
+        if (duplicateTitle) {
+            return res.status(400).send({ status: false, message: "enter different Title" })
         }
-
         if (!description) {
-            return res.status(400).send({ status: false, msg: "description is mandatory" })
+            return res.status(400).send({ status: false, msg: "please provide proper description" })
         }
-
         if (!price) {
-            return res.status(400).send({ status: false, msg: "price is mandatory" })
+            return res.status(400).send({ status: false, msg: "please provide price" })
+        }
+        if (!/^[1-9]+[0-9.]*$/.test(price)) {
+            return res.status(400).send({ status: false, message: "Please Provide Valid Price" })
         }
 
-        if (!regexPrice.test(price)) {
-            return res.status(400).send({ status: false, msg: "please provide valid price" })
+        if ( currencyId && currencyId !== "INR") {
+            return res.status(400).send({ status: false, msg: "currencyId must be INR" })
+        }
+        if ( currencyFormat && currencyFormat !== "₹") {
+            return res.status(400).send({ status: false, msg: "currencyFormat must be in ₹" })
         }
 
-        if (!currencyId) {
+        if (installments && !/^[0-9]*$/.test(installments)) {
+            return res.status(400).send({ status: false, message: "Please Provide Valid Installments" })
 
-            data["currencyId"] = "INR"
+        }
 
-        } else {
-            if (!(currencyId).includes("INR")) {
-                return res.status(400).send({ status: false, message: "Currency ID must be INR" })
+        let newSizes = availableSizes.split(",")
+
+        for (let i of newSizes) {
+            if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(i)) {
+                return res.status(400).send({ status: false, message: 'Please Provide Available Sizes from S,XS,M,X,L,XXL,XL' })
             }
         }
+        data["availableSizes"] = newSizes
 
-        if (!currencyFormat) {
-            data["currencyFormat"] = "₹"
-        } else {
-            if (!(currencyFormat).includes("₹")) {
-                return res.status(400).send({ status: false, message: "currencyFormat  must be ₹" })
-            }
+        let files = req.files
+
+        if (!files.length === 0) {
+            return res.status(400).send({ status: false, message: "Please Provide The Product Image" });
         }
 
-        let productImage = req.files
+        const uploadedImage = await uploadFile(files[0])
+        data.productImage = uploadedImage
 
-        if (productImage.length > 0) {
-
-            let uploadedFileURL = await uploadFile(productImage[0])
-
-            //profileImage was available in req.files ; added new key in req.body.profileImage = uploadedFileURL
-            req.body["productImage"] = uploadedFileURL
-        }
+        let productCreated = await productModel.create(data)
+        return res.status(201).send({ status: true, msg: "User created successfully", data: productCreated })
 
 
-
-        let s = availableSizes.split(",")
-
-
-        // for (let i = 0; i < s.length; i++) {
-        //     console.log(s[i])
-        // }
-
-        let enumValue = ["S", "XS", "M", "X", "L", "XXL", "XL"]
-
-
-        for (let i = 0; i < s.length; i++) {
-            let f = enumValue.includes(s[i])
-            if (f == false) {
-                return res.status(400).send({ status: false, message: "availableSizes is missing or invalid : provide  S, XS, M, X, L, XXL, XL " })
-            }
-        }
-
-        //if(enumValue.indexOf(s) == -1) return res.status(400).send({ status: false, message: "availableSizes is missing or invalid : provide  S, XS, M, X, L, XXL, XL " })
-
-        req.body["availableSizes"] = s
-
-
-
-        if (installments) {
-            if (!regexNumber.test(installments)) {
-                return res.status(400).send({ status: false, msg: "installments should be in number format" })
-            }
-        }
-
-        if (isDeleted == true) return res.status(400).send({ status: false, message: "cannot delete while creation" })
-
-
-        let productCreate = await productModel.create(req.body)
-
-        return res.status(201).send({ status: true, message: "product created successfully", data: productCreate })
-
-    }
-    catch (error) {
-        return res.status(500).send({ status: false, message: error.message })
+    } catch(err) {
+        return res.status(500).send({ status: false, error: err.message })
     }
 }
-
 
 const getProductByFilters = async function (req, res) {
     let query = req.query
