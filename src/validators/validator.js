@@ -43,7 +43,7 @@ const regexPassword = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,15}$/
 
 const regexPhone = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/
 
-const regexPincode = /^(\d{4}|\d{6})$/
+const regexPincode = /^[1-9][0-9]{5}$/
 
 const regexPrice   = /^[1-9][0-9.]+$/
 

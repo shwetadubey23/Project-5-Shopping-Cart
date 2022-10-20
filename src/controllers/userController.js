@@ -1,13 +1,9 @@
 const jwt = require('jsonwebtoken')
-
+const mongoose = require('mongoose')
 const userModel = require('../models/userModel')
 const { uploadFile } = require("../awsConfigure/aws")
 const bcrypt = require("bcrypt");
-const { isValid, checkObject, regexName, regexPhone, regexEmail, regexPassword, regexPincode, isValidObjectId } = require('../validators/validator')
-
-
-
-
+const {regexName, regexPhone, regexEmail, regexPassword, regexPincode, isValidObjectId } = require('../validators/validator')
 
 
 
@@ -17,53 +13,53 @@ const createUser = async function (req, res) {
         let data = req.body
         const { fname, lname, email, password, address, phone } = data
         if (Object.keys(data).length === 0) {
-            return res.status(400).send({ status: false, msg: "please provide something to create user" })
+            return res.status(400).send({ status: false, message: "please provide something to create user" })
         }
 
         if (!fname) {
-            return res.status(400).send({ status: false, msg: "please provide name in proper format" })
+            return res.status(400).send({ status: false, message: "please provide fname" })
         }
         if (!regexName.test(fname)) {
-            return res.status(400).send({ status: false, msg: "please provide valid name " })
+            return res.status(400).send({ status: false, message: "please provide valid name " })
         }
-        // ***********************************
+      
         if (!lname) {
-            return res.status(400).send({ status: false, msg: "please provide lname in proper format" })
+            return res.status(400).send({ status: false, message: "please provide lname" })
         }
         if (!regexName.test(lname)) {
-            return res.status(400).send({ status: false, msg: "please provide valid lname " })
+            return res.status(400).send({ status: false, message: "please provide valid lname" })
         }
-        // **********************************
+        // ************
 
         if (!email) {
-            return res.status(400).send({ status: false, msg: "please provide email in proper format" })
+            return res.status(400).send({ status: false, message: "please provide email" })
         }
         if (!regexEmail.test(email)) {
-            return res.status(400).send({ status: false, msg: "please provide valid email" })
+            return res.status(400).send({ status: false, message: "please provide valid email" })
         }
         const duplicateEmail = await userModel.findOne({ email })
         if (duplicateEmail) {
-            return res.status(400).send({ status: false, msg: "email is already registered" })
+            return res.status(400).send({ status: false, message: "email is already registered" })
         }
-        // ***********************************
+        // *************
         if (!password) {
-            return res.status(400).send({ status: false, msg: "please provide password in proper format" })
+            return res.status(400).send({ status: false, message: "please provide password" })
         }
         if (!regexPassword.test(password)) {
-            return res.status(400).send({ status: false, msg: "please provide valid password" })
+            return res.status(400).send({ status: false, message: "please provide valid password" })
         }
-        // ********************************
+        // ************
         if (!phone) {
-            return res.status(400).send({ status: false, msg: "please provide phone in proper format" })
+            return res.status(400).send({ status: false, message: "please provide phone Number" })
         }
         if (!regexPhone.test(phone)) {
-            return res.status(400).send({ status: false, msg: "please provide valid phone number" })
+            return res.status(400).send({ status: false, message: "please provide valid phone number" })
         }
         const duplicatePhone = await userModel.findOne({ phone })
         if (duplicatePhone) {
-            return res.status(400).send({ status: false, msg: "phone number is already registered" })
+            return res.status(400).send({ status: false, message: "phone number is already registered" })
         }
-        // **************************************
+        // **************
 
         if (address) {
 
@@ -75,16 +71,19 @@ const createUser = async function (req, res) {
                 if (!address.shipping.street) {
                     return res.status(400).send({ status: false, message: "shipping street is required" })
                 }
+                if (!address.shipping.city) {
+                    return res.status(400).send({ status: false, message: "shipping city is required" })
+                }
                 if (!regexName.test(address.shipping.city)) {
                     return res.status(400).send({ status: false, message: "shipping city is in incorrect format" })
                 }
 
                 if (!address.shipping.pincode) {
-                    return res.status(400).send({ status: false, msg: " shipping pincode is required" })
+                    return res.status(400).send({ status: false, message: " shipping pincode is required" })
                 }
 
                 if (!regexPincode.test(address.shipping.pincode)) {
-                    return res.status(400).send({ status: false, message: " shipping Pincode should be 6 characters long" })
+                    return res.status(400).send({ status: false, message: "shipping Pincode is in incorrect format" })
                 }
             }
 
@@ -93,15 +92,18 @@ const createUser = async function (req, res) {
                 if (!address.billing.street) {
                     return res.status(400).send({ status: false, message: "billing street is required" })
                 }
+                if (!address.billing.city) {
+                    return res.status(400).send({ status: false, message: "billing city is required" })
+                }
                 if (!regexName.test(address.billing.city)) {
                     return res.status(400).send({ status: false, message: "billing city is in incorrect format" })
                 }
 
                 if (!address.billing.pincode) {
-                    return res.status(400).send({ status: false, msg: " billing pincode is required" })
+                    return res.status(400).send({ status: false, message: "billing pincode is required" })
                 }
                 if (!regexPincode.test(address.billing.pincode)) {
-                    return res.status(400).send({ status: false, message: " billing Pincode should be 6 characters long" })
+                    return res.status(400).send({ status: false, message: "billing Pincode is in incorrect format" })
                 }
             }
         }

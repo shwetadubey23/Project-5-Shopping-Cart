@@ -4,17 +4,27 @@ const productModel = require('../models/productModel')
 
 const createCart = async function (req, res) {
     try {
+        let data = req.body
         let userId = req.params.userId
-        let productId = req.body.productId;
+        let { cartId, productId } = data
 
+        if (Object.keys(data).length === 0) {
+            return res.status(400).send({ status: false, msg: "please provide some data" })
+        }
 
-        let cartid = req.body.cartId
         let usercart = await cartModel.findOne({ userId: userId })
 
-
         if (!usercart) {
-
+            if (!productId) {
+                return res.status(400).send({ status: false, message: 'please provide product id' })
+            }
+            if (!mongoose.isValidObjectId(productId)) {
+                return res.status(400).send({ status: false, message: 'productId id is not valid' })
+            }
             let product = await productModel.findOne({ _id: productId, isDeleted: false })
+            if (!product) {
+                return res.status(404).send({ status: false, message: 'product does not exist' })
+            }
 
             let obj = {
                 productId: product._id,
@@ -26,14 +36,33 @@ const createCart = async function (req, res) {
         }
         if (usercart) {
 
+            if (!cartId) {
+                return res.status(400).send({ status: false, message: 'cart is already created (provide cart id)' })
+            }
+            if (!mongoose.isValidObjectId(cartId)) {
+                return res.status(400).send({ status: false, message: 'cart id is not valid' })
+            }
+            let cartIdInDb = await cartModel.findById(cartId)
+            if (!cartIdInDb) {
+                return res.status(404).send({ status: false, message: 'cart id does not exist' })
+            }
+            if (!productId) {
+                return res.status(400).send({ status: false, message: 'please provide product id' })
+            }
+            if (!mongoose.isValidObjectId(productId)) {
+                return res.status(400).send({ status: false, message: 'productId id is not valid' })
+            }
 
-            let findProduct = await productModel.findById(productId).select({ price: 1, _id: 0 });
+            let findProduct = await productModel.findOne({ _id: productId, isDeleted: false }).select({ price: 1, _id: 0 });
+            if(!findProduct){
+                return res.status(404).send({ status: false, message: 'productId id does not exist' })
+            }
+
             let obj = {
                 quantity: 1
             }
-
             let updateCart = await cartModel.findOneAndUpdate(
-                { _id: cartid, "items.productId": productId, userId: userId },
+                { _id: cartIdInDb._id, "items.productId": productId, userId: userId },
                 {
                     $inc: {
                         "items.$.quantity": 1,   // $ sign dynamically directs to the index number of the sub document.
@@ -41,19 +70,17 @@ const createCart = async function (req, res) {
                     },
                 },
                 { new: true });
-            console.log(updateCart)
-            // res.status(200).send({status:true,message:"Quantity add in cart",data:updateCart})
 
             if (!updateCart) {
-               
-                let product = await productModel.findOne({ _id: productId, isDeleted: false })
+                let id = data.productId
+                let product = await productModel.findOne({ _id: id, isDeleted: false })
                 let obj = {
                     productId: product._id,
                     quantity: 1
                 }
 
                 let updateCart = await cartModel.findOneAndUpdate(
-                    { _id: cartid, userId: userId },
+                    { _id: cartIdInDb._id, userId: userId },
                     {
                         $push: { items: obj },
                         $inc: {
@@ -65,18 +92,9 @@ const createCart = async function (req, res) {
                     { new: true });
                 return res.status(201).send({ status: true, message: "product pushed and added successfully!", data: updateCart })
 
-
             }
             return res.status(201).send({ status: true, message: "product quantity added successfully!", data: updateCart })
-
-
-
         }
-
-
-
-
-
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message })
     }

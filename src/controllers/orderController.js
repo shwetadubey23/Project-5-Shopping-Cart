@@ -2,7 +2,7 @@ const userModel = require('../models/userModel')
 const productModel = require('../models/productModel')
 const cartModel = require('../models/cartModel')
 const orderModel = require('../models/orderModel')
-const { findOneAndUpdate } = require('../models/userModel')
+
 
 
 const createOrder = async function (req, res) {

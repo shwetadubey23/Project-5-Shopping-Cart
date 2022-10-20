@@ -15,7 +15,7 @@ router.post('/register', userController.createUser)
 
 router.post('/login', userController.userLogin)
 
-router.get('/user/:userId/profile', userController.getUserById)
+router.get('/user/:userId/profile', authentication, userController.getUserById)
 
 router.put('/user/:userId/profile', authentication, authorisation, userController.updateuser)
 
@@ -34,20 +34,20 @@ router.delete('/products/:productId', productController.deleteProductbyId)
 
 //------------------------------- Cart APIs --------------------------------------------
 
- router.post('/users/:userId/cart',   cartController.createCart)
+ router.post('/users/:userId/cart', authentication, authorisation, cartController.createCart)
 
- router.get('/users/:userId/cart', authentication, authorisation,  cartController.getCart)
+ router.get('/users/:userId/cart', authentication, authorisation, cartController.getCart)
 
 
-router.put('/users/:userId/cart', authentication, authorisation,  cartController.updatecart)
+router.put('/users/:userId/cart', authentication, authorisation, cartController.updatecart)
 
-router.delete('/users/:userId/cart', authentication, authorisation,  cartController.deleteCart)
+router.delete('/users/:userId/cart', authentication, authorisation, cartController.deleteCart)
 
 //------------------------------- Order APIs ----------------------------------------------
 
-router.post('/users/:userId/orders', orderController.createOrder)
+router.post('/users/:userId/orders', authentication, authorisation, orderController.createOrder)
 
-router.put('/users/:userId/orders', orderController.updateOrder)
+router.put('/users/:userId/orders', authentication, authorisation, orderController.updateOrder)
 
 
 router.all("/*", function(req, res) {
