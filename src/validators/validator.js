@@ -33,6 +33,10 @@ function checkObject(value) {
     }
 }
 
+function isValidStatus(status) {
+    return ['pending', 'completed', 'cancelled'].includes(status);
+}
+
 // Regex
 
 const regexName = /^[a-zA-Z ]{2,30}$/
@@ -45,9 +49,9 @@ const regexPhone = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/
 
 const regexPincode = /^[1-9][0-9]{5}$/
 
-const regexPrice   = /^[1-9][0-9.]+$/
+const regexPrice = /^[1-9][0-9.]+$/
 
 const regexNumber = /^\d+$/
 
 
-module.exports = {isValid, isValidObjectId, onlyNumbers, checkObject, regexName, regexEmail, regexPassword, regexPhone, regexPincode, regexPrice, regexNumber}
+module.exports = { isValid, isValidObjectId, onlyNumbers, checkObject, isValidStatus, regexName, regexEmail, regexPassword, regexPhone, regexPincode, regexPrice, regexNumber }
