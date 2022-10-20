@@ -44,7 +44,6 @@ const createOrder = async function (req, res) {
             totalQuantity = totalQuantity + array[i].quantity
         }
 
-
         let Items = cart.items
         let totalPrice = cart.totalPrice
         let totalItems = cart.totalItems
@@ -57,11 +56,11 @@ const createOrder = async function (req, res) {
         await cartModel.findOneAndUpdate({ _id: cart._id, userId: userId }, { $set: { items: items1, totalPrice: totalPrice1, totalItems: totalItems1 } })
         return res.status(201).send({ status: true, message: "Success", data: orderCreated })
 
-
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message })
     }
 }
+
 
 const updateOrder = async function (req, res) {
     try {
@@ -90,16 +89,6 @@ const updateOrder = async function (req, res) {
 
                 return res.status(400).send({ status: false, message: "this order cannot be cancelled" })
             }}
-
-
-
-        // if(orderDB.cancellable == "false"){
-        //     return res.status(404).send({ status: false, message: "order can not be cancel" });
-        // }
-
-        // if(orderDB.status == "cancelled"){
-        //     return res.status(404).send({ status: false, message: "order can not be cancel" });
-        // }
 
         let updateOrder = await orderModel.findOneAndUpdate({ _id: orderId }, { $set: { status: status } }, { new: true })
         return res.status(200).send({ status: true, message: "Success", data: updateOrder })

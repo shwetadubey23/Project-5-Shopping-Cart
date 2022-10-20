@@ -126,18 +126,11 @@ const updatecart = async function (req, res) {
         let userId = req.params.userId
         let data = req.body
         let { productId, cartId, removeProduct } = data
-  // removeProduct = removeProduct.toString().trim()
 
 
         if (Object.keys(data).length === 0) {
             return res.status(400).send({ status: false, message: "body should not be empty" })
         }
-        // if (!isValid (removeProduct)) {
-        //     return res.status(400).send({ status: false, message: 'removeProduct key is mandatory' })
-        // }
-        // if (!(removeProduct == "1" || removeProduct == "0")) {
-        //     return res.status(400).send({ status: false, message: "removeProduct value only can be 0 or 1" })
-        // }
 
         if (!cartId) {
             return res.status(400).send({ status: false, message: 'cart id is mandatory' })
