@@ -78,7 +78,7 @@ const updateOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: "Status is required " });
         }
         if (!isValidStatus(data.status)) {
-            return res.status(400).send({ status: false, message: "Status should be one of 'pending', 'completed', 'cancelled'" });
+            return res.status(400).send({ status: false, message: "Status can be updated to only 'completed' and 'cancelled'" });
         }
         let orderDB = await orderModel.findOne({ _id: orderId, userId: userId, isDeleted: false })
         if (!orderDB) {

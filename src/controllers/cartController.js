@@ -126,7 +126,7 @@ const updatecart = async function (req, res) {
         let userId = req.params.userId
         let data = req.body
         let { productId, cartId, removeProduct } = data
-
+       
 
         if (Object.keys(data).length === 0) {
             return res.status(400).send({ status: false, message: "body should not be empty" })
@@ -152,6 +152,12 @@ const updatecart = async function (req, res) {
         if (!findProduct) {
             return res.status(404).send({ status: false, message: 'productId id does not exist' })
         }
+
+        if(typeof(removeProduct) == "undefined"){
+            return res.status(404).send({ status: false, message: 'removeProduct key is mandatory' })
+           
+        }
+
         if (removeProduct == 1) {
             let product = await productModel.findOne({ _id: productId, isDeleted: false })  // we want the price of product
 

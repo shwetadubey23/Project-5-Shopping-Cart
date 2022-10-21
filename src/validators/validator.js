@@ -8,7 +8,7 @@ const isValidObjectId = (ObjectId) => {
 
 
 function isValidStatus(status) {
-    return ['pending', 'completed', 'cancelled'].includes(status);
+    return ['completed', 'cancelled'].includes(status);
 }
 
 
@@ -29,4 +29,4 @@ const regexPrice = /^[1-9][0-9.]+$/
 const regexNumber = /^\d+$/
 
 
-module.exports = { isValid, isValidObjectId, onlyNumbers, checkObject, isValidStatus, regexName, regexEmail, regexPassword, regexPhone, regexPincode, regexPrice, regexNumber }
+module.exports = { isValidObjectId, isValidStatus, regexName, regexEmail, regexPassword, regexPhone, regexPincode, regexPrice, regexNumber }
