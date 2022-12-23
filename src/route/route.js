@@ -22,7 +22,7 @@ router.put('/user/:userId/profile', authentication, authorisation, userControlle
 
 router.post('/products', productController.createProduct)
 
-router.get('/products', productController.getProductByFilters)
+router.get('/products', productController.getProductByQuery)
 
 router.get('/products/:productId', productController.getProductById)
 

@@ -19,13 +19,13 @@ const createOrder = async function (req, res) {
         if (!isValidObjectId(cartId)) {
             return res.status(400).send({ status: false, message: "cartId is not valid" })
         }
-        let user = await userModel.findById(userId)
-        if (!user) {
-            return res.status(404).send({ status: true, message: "user not found" })
-        }
+     
         let cart = await cartModel.findOne({ _id: cartId, userId: userId })
         if (!cart) {
             return res.status(404).send({ status: false, message: "cart not found" })
+        }
+        if(!cart.totalItems){
+            return res.status(404).send({ status: false, message: "cart is empty" })
         }
         if (status) {
             if (status != "pending")
@@ -50,10 +50,10 @@ const createOrder = async function (req, res) {
 
         let orderCreated = await orderModel.create({ userId: userId, items: Items, totalPrice: totalPrice, totalItems: totalItems, totalQuantity: totalQuantity })
 
-        let items1 = []
-        let totalPrice1 = 0
-        let totalItems1 = 0
-        await cartModel.findOneAndUpdate({ _id: cart._id, userId: userId }, { $set: { items: items1, totalPrice: totalPrice1, totalItems: totalItems1 } })
+        // let items1 = []
+        // let totalPrice1 = 0
+        // let totalItems1 = 0
+        // await cartModel.findOneAndUpdate({ _id: cart._id, userId: userId }, { $set: { items: items1, totalPrice: totalPrice1, totalItems: totalItems1 } })
         return res.status(201).send({ status: true, message: "Success", data: orderCreated })
 
     } catch (error) {
@@ -83,6 +83,12 @@ const updateOrder = async function (req, res) {
         let orderDB = await orderModel.findOne({ _id: orderId, userId: userId, isDeleted: false })
         if (!orderDB) {
             return res.status(404).send({ status: false, message: "order not found" });
+        }
+        if(orderDB.status =="completed"){
+            return res.status(404).send({ status: false, message: "Order alreday completed" })
+        }
+        if(orderDB.status =="cancelled"){
+            return res.status(404).send({ status: false, message: "Order alreday cancelled" })
         }
         if (orderDB.cancellable == false) {
             if (status === "cancelled") {

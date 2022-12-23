@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const { regexName, regexPhone, regexEmail, regexPassword, regexPincode, isValidObjectId } = require('../validators/validator')
 
 
-
+//_______________________________ createUser (post)API ______________________________________________ 
 
 const createUser = async function (req, res) {
     try {
@@ -282,4 +282,5 @@ const updateuser = async function (req, res) {
         return res.status(500).send({status: false, error: err.message})
     }
 }
+
 module.exports = { createUser, userLogin, updateuser, getUserById }
