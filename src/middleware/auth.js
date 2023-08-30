@@ -14,8 +14,7 @@ const authentication = async function (req, res, next) {
         }
         
         let bearerToken = token.split(' ')[1]
-       
-        
+               
         jwt.verify(bearerToken, 'project-5-group-57', function (err, decodedToken) {
             if (err) {
                 return res.status(401).send({ status: false, message: 'please provide valid token' })

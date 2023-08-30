@@ -13,19 +13,14 @@ const createProduct = async function (req, res) {
         if (Object.keys(data).length === 0) {
             return res.status(400).send({ status: false, message: "please provide details for the Product creation" })
         }
-        if (!title) {
-            return res.status(400).send({ status: false, message: "please provide title" })
+        if (!title || !description || !price) {
+            return res.status(400).send({ status: false, message: "please provide all required fields [title, description, price ]" })
         }
         const duplicateTitle = await productModel.findOne({ title: title })
         if (duplicateTitle) {
             return res.status(400).send({ status: false, message: "enter different Title" })
         }
-        if (!description) {
-            return res.status(400).send({ status: false, message: "please provide description" })
-        }
-        if (!price) {
-            return res.status(400).send({ status: false, message: "please provide price" })
-        }
+
         if (!/^[1-9]+[0-9.]*$/.test(price)) {
             return res.status(400).send({ status: false, message: "Please Provide Valid Price" })
         }
@@ -42,7 +37,7 @@ const createProduct = async function (req, res) {
 
         }
         if (availableSizes) {
-            let newSizes = availableSizes.split(",")
+            let newSizes = availableSizes.toUpperCase().split(",")
 
             for (let i of newSizes) {
                 if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(i)) {
@@ -73,74 +68,72 @@ const createProduct = async function (req, res) {
 
 const getProductByQuery = async (req, res) => {
     try {
-      let { name, size, priceGreaterThan, priceLessThan, priceSort, ...rest } = req.query ;
-  
-      if (Object.keys(rest).length != 0) {
-        return res.status(400).send({ status: false, message: "Filter data through keys => name, size, priceGreaterThan, priceLessThan, priceSort" });
-      }
-      let data = { isDeleted: false };
-  
-      if (priceGreaterThan) {
-        let pric = parseFloat(priceGreaterThan);
-        if (!regexPrice(priceGreaterThan)) {
-          return res.status(400).send({ status: false, message: "priceGreaterThan must be Numeric or decimal (upto 4 digits)" });
+        let { name, size, priceGreaterThan, priceLessThan, priceSort, ...rest } = req.query;
+
+        if (Object.keys(rest).length != 0) {
+            return res.status(400).send({ status: false, message: "Filter data through keys => name, size, priceGreaterThan, priceLessThan, priceSort" });
         }
-        data.price = { $gt: pric };
-      }
-  
-      if (priceLessThan) {
-        let pric = parseFloat(priceLessThan);
-        if (!regexPrice(priceLessThan)) {
-          return res.status(400).send({ status: false, message: "priceLessThan must be Numeric or decimal (upto 4 digits"});
+        let data = { isDeleted: false,  };
+
+        if (priceGreaterThan) {
+            let greaterPrice = parseFloat(priceGreaterThan);
+            if (!regexPrice(priceGreaterThan)) {
+                return res.status(400).send({ status: false, message: "priceGreaterThan must be Numeric or decimal (upto 4 digits)" });
+            }
+            data.price = { $gt: greaterPrice };
         }
-        data.price = { $lt: pric };
-      }
-  
-      if (priceGreaterThan && priceLessThan) {
-        let pric = parseFloat(priceGreaterThan);
-        let pri = parseFloat(priceLessThan);
-        data.price = { $gt: pric, $lt: pri };
-      }
-  
-      if (size) {
-        size = size.toUpperCase().split(",");
-        for (let i = 0; i < size.length; i++) {
-          const element = size[i];
-  
-          if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(element)) {
-            return res.status(400).send({status: false, message: "available sizes should be from:  S, XS, M, X, L, XXL, XL"});
-          }
+
+        if (priceLessThan) {
+            let lessPrice = parseFloat(priceLessThan);
+            if (!regexPrice(priceLessThan)) {
+                return res.status(400).send({ status: false, message: "priceLessThan must be Numeric or decimal (upto 4 digits" });
+            }
+            data.price = { $lt: lessPrice };
         }
-        data.availableSizes = { $in: size };
-      }
-      if (name) {
-        if (!isValidTitle(name))
-          return res.status(400).send({ status: false, message: "Invalid name" });
-        const regexForName = new RegExp(name, "i");
-        data.title = { $regex: regexForName };
-      }
-  
-      let allProducts = await productModel.find(data);
-  
-      if (allProducts.length == 0) {
-        return res.status(404).send({ status: false, message: "No Product found" });
-      }
-  
-      if (priceSort == 1) {
-        allProducts.sort((a, b) => {
-          return a.price - b.price;
-        });
-      } else if (priceSort == -1) {
-        allProducts.sort((a, b) => {
-          return b.price - a.price;
-        });
-      }
-  
-      return res.status(200).send({ status: true, message: "Success", data: allProducts });
+
+        if (priceGreaterThan && priceLessThan) {
+            let greaterPrice = parseFloat(priceGreaterThan);
+            let lessPrice = parseFloat(priceLessThan);
+            data.price = { $gt: greaterPrice, $lt: lessPrice };
+        }
+
+        if (size) {
+            size = size.toUpperCase().split(",");
+            for (let i = 0; i < size.length; i++) {
+                const element = size[i];
+
+                if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(element)) {
+                    return res.status(400).send({ status: false, message: "available sizes should be from:  S, XS, M, X, L, XXL, XL" });
+                }
+            }
+            data.availableSizes = { $in: size };
+        }
+        if (name) {
+            const regexForName = new RegExp(name, "i");
+            data.title = { $regex: regexForName };
+        }
+
+        let allProducts = await productModel.find(data);
+
+        if (allProducts.length == 0) {
+            return res.status(404).send({ status: false, message: "No Product found" });
+        }
+
+        if (priceSort == 1) {
+            allProducts.sort((a, b) => {
+                return a.price - b.price;
+            });
+        } else if (priceSort == -1) {
+            allProducts.sort((a, b) => {
+                return b.price - a.price;
+            });
+        }
+
+        return res.status(200).send({ status: true, message: "Success", data: allProducts });
     } catch (error) {
-      return res.status(500).send({ status: false, error: error.message });
+        return res.status(500).send({ status: false, error: error.message });
     }
-  };
+};
 
 
 
@@ -174,7 +167,7 @@ const updateProduct = async function (req, res) {
         let productID = req.params.productId
         let productImage = req.files
 
-        if (Object.keys(data).length === 0 &&  !req.files) {
+        if (Object.keys(data).length === 0 && !req.files) {
             return res.status(400).send({ status: false, message: "please provide details for the Product updation" })
         }
         if (!isValidObjectId(productID)) return res.status(400).send({ status: false, message: "Given productID is not valid" })
@@ -182,7 +175,7 @@ const updateProduct = async function (req, res) {
         let product = await productModel.findOne({ _id: productID, isDeleted: false })
         if (!product) return res.status(404).send({ status: false, message: "Product not found" })
 
-        var { installments, availableSizes, currencyFormat, currencyId, price,  title } = data
+        var { installments, availableSizes, price, title } = data
 
         if (title) {
             let uniqueTitle = await productModel.findOne({ title: title })
@@ -197,40 +190,28 @@ const updateProduct = async function (req, res) {
             }
         }
 
-        if (currencyId) {
-            if (!(currencyId).includes("INR")) {
-                return res.status(400).send({ status: false, message: "Currency ID must be INR" })
-            }
-        }
-        if (currencyFormat) {
-            if (!(currencyFormat).includes("₹")) {
-                return res.status(400).send({ status: false, message: "currencyFormat  must be ₹" })
-            }
-        }
+        let uploadedFileURL
+        if (req.files && req.files.length > 0 && req.files[0].fieldname == "productImage") {
+            uploadedFileURL = await uploadFile(productImage[0])
 
-     
-            let uploadedFileURL
-         if(req.files && req.files.length>0 && req.files[0].fieldname=="productImage"){
-             uploadedFileURL = await uploadFile(productImage[0])
-
-                   data["productImage"] = uploadedFileURL
-         }
+            data["productImage"] = uploadedFileURL
+        }
         if (availableSizes) {
-            let s = availableSizes.split(",")
+            let sizes = availableSizes.toUpperCase().split(",")
 
             let enumValue = ["S", "XS", "M", "X", "L", "XXL", "XL"]
 
-            for (let i = 0; i < s.length; i++) {
-                let f = enumValue.includes(s[i])
-                if (f == false) {
-                    return res.status(400).send({ status: false, message: "availableSizes is missing or invalid : provide  S, XS, M, X, L, XXL, XL " })
+            for (let i = 0; i < sizes.length; i++) {
+               
+                if (!enumValue.includes(sizes[i])) {
+                    return res.status(400).send({ status: false, message: "availableSizes is invalid : provide  S, XS, M, X, L, XXL, XL " })
                 }
             }
 
-            data["availableSizes"] = s
+            data["availableSizes"] = sizes
         }
 
-       if (installments) {
+        if (installments) {
             if (!regexNumber.test(installments)) {
                 return res.status(400).send({ status: false, message: "installments should be in number format" })
             }
@@ -258,7 +239,7 @@ const deleteProductbyId = async function (req, res) {
             return res.status(404).send({ status: false, message: "product not found" })
         }
 
-        await productModel.updateOne({ _id: productId, isDeleted: false }, { $set: { isDeleted: true, deletedAt: new Date() } })
+        await productModel.findOneAndUpdate({ _id: productId, isDeleted: false }, { $set: { isDeleted: true, deletedAt: new Date() } })
         return res.status(200).send({ status: true, message: "product deleted successfully" })
     }
     catch (error) {
